@@ -16,7 +16,7 @@
 
 <body>
   <div>
-    <video id="video" src="./video.mp4" poster="./cover.jpg" controls>
+    <video id="video" src="video.mp4" poster="./cover.jpg" controls>
       <track kind="subtitles" src="./track.vtt" srclang="en" label="EN">
       <track kind="subtitles" src="./track-2.vtt" srclang="zh" label="ZH">
     </video>
@@ -33,8 +33,8 @@
     // document.webkitExitFullscreen()
     // 播放速率
     // video.playbackRate
-    let mediaSource = new MediaSource()
-    video.src = URL.createObjectURL(mediaSource)
+    // let mediaSource = new MediaSource()
+    // video.src = URL.createObjectURL(mediaSource)
   </script>
 </body>
 
