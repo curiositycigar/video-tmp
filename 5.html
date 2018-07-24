@@ -17,7 +17,7 @@
 
 <body>
   <div>
-    <video id="video" src="./video.mp4" poster="./cover.jpg">
+    <video id="video" src="./video/video.mp4" muted poster="./cover.jpg">
       <track kind="subtitles" src="./track.vtt" srclang="en">
     </video>
     <canvas id="canvas" width="480" height="270"></canvas>
@@ -74,24 +74,42 @@
       }
     })
 
+    let width = canvas1.width
+    let height = canvas1.height
+    let layerX = 0
+    let layerY = 0
+    let offset = 0
     window.setInterval(function () {
+      offset += Math.PI / 5
+      if (offset > (Math.PI * 2)) {
+        offset = 0
+      }
       range.value = (metaData.currentTime / video.duration) * 100
       volume.value = metaData.volume * 100
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
       let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
       let l = frame.data.length / 4;
-
-      for (let i = 0; i < l; i++) {
-        let r = frame.data[i * 4 + 0];
-        let g = frame.data[i * 4 + 1];
-        let b = frame.data[i * 4 + 2];
-        frame.data[i * 4 + 0] = r + Math.floor(Math.random() * 10);
-        frame.data[i * 4 + 1] = g + Math.floor(Math.random() * 10);
-        frame.data[i * 4 + 2] = b + Math.floor(Math.random() * 100);
-        frame.data[i * 4 + 3] = 255;
+      let newFrame = ctx.createImageData(canvas.width, canvas.height)
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let i = y * width + x
+          let r = frame.data[i * 4 + 0];
+          let g = frame.data[i * 4 + 1];
+          let b = frame.data[i * 4 + 2];
+          let dis = Math.floor(Math.sqrt(Math.pow(layerX - x, 2) + Math.pow(layerY - y, 2))) / 3
+          let disInner = dis - offset
+          newFrame.data[i * 4 + 0] = r * (Math.sin(disInner) / dis + 1);
+          newFrame.data[i * 4 + 1] = g * (Math.sin(disInner) / dis + 1);
+          newFrame.data[i * 4 + 2] = b * (Math.sin(disInner) / dis + 1);
+          newFrame.data[i * 4 + 3] = 255;
+        }
       }
-      ctx1.putImageData(frame, 0, 0);
+      ctx1.putImageData(newFrame, 0, 0);
     }, 30)
+    canvas1.addEventListener('mousemove', function (e) {
+      layerX = e.layerX
+      layerY = e.layerY
+    })
   </script>
 </body>
 
