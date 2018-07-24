@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    video {
+      width: 0;
+      height: 0;
+      visibility: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <video id="video" src="./video.mp4" poster="./cover.jpg">
+      <track kind="subtitles" src="./track.vtt" srclang="en">
+    </video>
+    <canvas id="canvas" width="480" height="270"></canvas>
+    <canvas id="canvas1" width="480" height="270"></canvas>
+    <br> 进度:
+    <input value="0" id="range" type="range"> 声音:
+    <input value="100" id="volume" type="range">
+    <button id="play">播放/暂停</button>
+  </div>
+  <script>
+    let video = document.querySelector('#video')
+    let range = document.querySelector('#range')
+    let volume = document.querySelector('#volume')
+    let play = document.querySelector('#play')
+    let canvas = document.querySelector('#canvas')
+    let ctx = canvas.getContext('2d')
+    let canvas1 = document.querySelector('#canvas1')
+    let ctx1 = canvas1.getContext('2d')
+    let metaData = {}
+    Object.defineProperty(metaData, 'currentTime', {
+      get() {
+        return video.currentTime
+      },
+      set(time) {
+        video.currentTime = time
+      }
+    })
+    Object.defineProperty(metaData, 'volume', {
+      get() {
+        return video.volume
+      },
+      set(volume) {
+        console.log(volume)
+        video.volume = volume
+      }
+    })
+    function setVal(e) {
+      let value = parseInt(e.target.value)
+      metaData.currentTime = parseInt(value * video.duration / 100)
+    }
+    range.addEventListener('input', function (e) {
+      let value = parseInt(e.target.value)
+      metaData.currentTime = parseInt(value * video.duration / 100)
+    })
+    volume.addEventListener('input', function (e) {
+      let value = parseInt(e.target.value)
+      metaData.volume = (value / 100).toFixed(1)
+    })
+    play.addEventListener('click', function () {
+      if (video.paused) {
+        video.play()
+      } else {
+        video.pause()
+      }
+    })
+
+    window.setInterval(function () {
+      range.value = (metaData.currentTime / video.duration) * 100
+      volume.value = metaData.volume * 100
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let l = frame.data.length / 4;
+
+      for (let i = 0; i < l; i++) {
+        let r = frame.data[i * 4 + 0];
+        let g = frame.data[i * 4 + 1];
+        let b = frame.data[i * 4 + 2];
+        frame.data[i * 4 + 0] = r + Math.floor(Math.random() * 10);
+        frame.data[i * 4 + 1] = g + Math.floor(Math.random() * 10);
+        frame.data[i * 4 + 2] = b + Math.floor(Math.random() * 100);
+        frame.data[i * 4 + 3] = 255;
+      }
+      ctx1.putImageData(frame, 0, 0);
+    }, 30)
+  </script>
+</body>
+
+</html>

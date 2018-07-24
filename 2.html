@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    video {
+      width: 480px;
+      height: 270px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <video id="video" preload="metadata" src="./video.mp4" poster="./cover.jpg" muted controls>
+      <track kind="subtitles" src="./track.vtt" srclang="en" label="EN">
+      <track kind="subtitles" src="./track-2.vtt" srclang="zh" label="ZH">
+    </video>
+  </div>
+  <script>
+    let muted = false
+    window.setInterval(function() {
+      video.muted = muted
+    }, 100)
+  </script>
+</body>
+
+</html>

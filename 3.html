@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    video {
+      width: 480px;
+      height: 270px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <video id="video" src="./video.mp4" poster="./cover.jpg" controls>
+      <track kind="subtitles" src="./track.vtt" srclang="en" label="EN">
+      <track kind="subtitles" src="./track-2.vtt" srclang="zh" label="ZH">
+    </video>
+  </div>
+  <script>
+    let video = document.querySelector('#video')
+    let textTracks = video.textTracks
+    // 字幕轨
+    // textTracks[i].mode="disabled"
+    // textTracks[i].mode="showing"
+    // 动态加载字幕 待完成
+    // 全屏
+    // video.webkitRequestFullScreen()
+    // document.webkitExitFullscreen()
+    // 播放速率
+    // video.playbackRate
+    let mediaSource = new MediaSource()
+    video.src = URL.createObjectURL(mediaSource)
+  </script>
+</body>
+
+</html>
