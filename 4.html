@@ -20,10 +20,24 @@
             height: 360px;
         }
 
-        #videoWrapper {
+        .video-wrapper {
             width: 100%;
             height: 100%;
             background: #000;
+        }
+
+        .video-wrapper.isfullscreen .controller {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            border-radius: 0;
+            opacity: 0;
+            transition: all .3s;
+        }
+
+        .video-wrapper.isfullscreen .controller:hover {
+            opacity: 1;
         }
 
         video {
@@ -34,83 +48,192 @@
             padding: 0;
         }
 
-        #controller {
+        .controller {
+            box-sizing: border-box;
             display: flex;
             background: #f5f5f5;
             border-radius: 3px;
             padding: 3px;
         }
 
-        #controller>div {
+        .controller>div {
             height: 30px;
             line-height: 30px;
             margin: 0 5px
         }
 
-        #controller>div:first-child {
+        .controller>div:first-child {
             margin-left: 0;
         }
 
-        #controller>div:last-child {
+        .controller>div:last-child {
             margin-right: 0;
         }
 
-        #controller .control-btn {
+        .controller .control-btn {
             width: 30px;
             text-align: center;
             cursor: pointer;
         }
 
-        #controller .control-btn:hover {
+        .controller .control-btn:hover {
             background: #efefef;
         }
 
-        #controller #playWrapper:active {
+        .controller .control-btn.active {
+            background: #dedede;
+        }
+
+        .controller #playWrapper:active {
             background: #dedede;
             border-radius: 3px;
         }
 
-        #controller #progressWrapper {
+        .controller #progressWrapper {
             flex: 1;
         }
 
-        #controller img {
-            vertical-align: middle;
+        .controller img {
+            vertical-align: text-bottom;
             width: 20px;
             height: 20px;
+        }
+    </style>
+    <style>
+        #progressWrapper {
+            height: 30px;
+        }
+
+        #trackerWrapper {
+            position: relative;
+            margin-top: 12px;
+            height: 6px;
+            cursor: pointer;
+        }
+
+        #tracker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 6px;
+            width: 100%;
+            background: #dedeef;
+            border-radius: 3px;
+        }
+
+        #buffer {
+            height: 6px;
+            width: 100%;
+            background: #ababab;
+            width: 0%;
+        }
+
+        #controlPoint {
+            position: absolute;
+            left: 0%;
+            transform: translateX(-7px);
+            top: -4px;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 7px;
+            box-shadow: 0 0 5px 1px #ababef;
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        #progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0%;
+            height: 6px;
+            background: #ababef;
+            z-index: 1;
+        }
+    </style>
+    <style>
+        #volumeWrapper {
+            position: relative;
+        }
+
+        #volumeTrackWrapper {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: -100px;
+            height: 100px;
+            width: 30px;
+            height: 100px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            cursor: default;
+        }
+
+        #volumeWrapper:hover #volumeTrackWrapper {
+            display: block;
+        }
+
+        #volumeTrack {
+            position: relative;
+            width: 6px;
+            height: 90px;
+            background: #dedeef;
+            margin: 0 auto;
+            margin-top: 5px;
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #volume {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 6px;
+            background: #ababef;
         }
     </style>
 </head>
 
 <body>
     <div id="play">
-        <div id="videoWrapper">
-            <video id="video" src="./video.mp4" poster="./cover.jpg" controls>
+        <div id="videoWrapper" class="video-wrapper">
+            <video id="video" src="./video.mp4" poster="./cover.jpg">
                 <track kind="subtitles" src="./track.vtt" srclang="en">
             </video>
-            <div id="controller">
+            <div id="controller" class="controller">
                 <div id="playWrapper" class="control-btn">
-                    <img id="play" class="show" src="./images/play.png" alt="play/pause">
-                    <img id="pause" class="hidden" src="./images/pause.png" alt="play/pause">
+                    <img data-state="true" class="show" src="./images/play.png" alt="play/pause">
+                    <img data-state="false" class="hidden" src="./images/pause.png" alt="play/pause">
                 </div>
                 <div id="progressWrapper">
                     <div id="trackerWrapper">
+                        <div id="progress"></div>
                         <div id="tracker">
                             <div id="buffer"></div>
                         </div>
                         <div id="controlPoint"></div>
-                        <div id="progress"></div>
                     </div>
                 </div>
                 <div id="time">
                     <span id="currentTime">00:00</span> |
                     <span id="totalTime">00:00</span>
                 </div>
-                <div id="volume" class="control-btn">
-                    <img src="./images/volume.png" alt="">
+                <div id="volumeWrapper" class="control-btn">
+                    <div id="volumeTrackWrapper">
+                        <div id="volumeTrack">
+                            <div id="volume"></div>
+                        </div>
+                    </div>
+                    <img class="show" src="./images/volume.png" alt="">
+                </div>
+                <div id="textTrack" class="control-btn">
+                    字
                 </div>
                 <div id="fullscreen" class="control-btn">
-                    <img src="./images/Fullscreen.png" alt="">
+                    <img data-state="false" class="show" src="./images/Fullscreen.png" alt="">
+                    <img data-state="true" class="hidden" src="./images/Fullscreen_Exit.png" alt="">
                 </div>
             </div>
         </div>
@@ -118,31 +241,159 @@
     <script>
         // 视频数据
         let videoData = {
-            playing: false,
-            totalTime: 0,
+            paused: true,
+            totalTime: 100,
             currentTime: 0,
             cacheTime: 0,
+            volumeShow: false,
             volume: 0,
-            fullscreen: false
+            fullscreen: false,
+            track: false
         }
-        // 监听fullscreenchange事件
         let videoWrapper = gI('videoWrapper')
+        let videoElement = gI('video')
+        let playWrapper = gI('playWrapper')
+        let fullscreen = gI('fullscreen')
+        let volumeWrapper = gI('volumeWrapper')
+        let volumeTrack = gI('volumeTrack')
+        let volumeElement = gI('volume')
+        let fullscreenImages = [...fullscreen.querySelectorAll('img')]
+        let playImages = [...playWrapper.querySelectorAll('img')]
+        let tracker = gI('trackerWrapper')
+        let controlPoint = gI('controlPoint')
+        let buffer = gI('buffer')
+        let progress = gI('progress')
+        let showTotalTime = gI('totalTime')
+        let showCurrentTime = gI('currentTime')
+        let textTrack = gI('textTrack')
+        let controller = gI('controller')
         function gI(id) {
             return document.querySelector('#' + id)
         }
-        let clickEventLit = [
-            function (e) {
-                console.log(1)
-            },
-            function (e) {
-                console.log(2)
+        // initial
+        init()
+        function init() {
+            videoElement.volume = videoData.volume
+        }
+        // 轨道
+        tracker.addEventListener('click', function (e) {
+            // e.layerX / tracker.offsetWidth
+            let d = e.offsetX / tracker.offsetWidth
+            videoData.currentTime = videoData.totalTime * d
+            // video
+            videoElement.currentTime = videoData.currentTime
+            // 视图
+            let d100 = d * 100
+            controlPoint.style.left = d100 + '%'
+            progress.style.width = d100 + '%'
+        })
+        videoElement.addEventListener('canplay', function () {
+            videoData.totalTime = videoElement.duration
+            showTotalTime.innerHTML = toMinutes(videoData.totalTime)
+        })
+        videoElement.addEventListener('progress', function () {
+            let buf = videoElement.buffered
+            if (buf.length > 0) {
+                videoData.cacheTime = buf.end(buf.length - 1)
             }
-        ]
-        gI('play').addEventListener('click', function (e) {
-            for (let i in clickEventLit) {
-                clickEventLit[i](e)
+            let d100 = 100 * videoData.cacheTime / videoData.totalTime
+            buffer.style.width = d100 + '%'
+        })
+        window.setInterval(function () {
+            videoData.currentTime = videoElement.currentTime
+            showCurrentTime.innerHTML = toMinutes(videoData.currentTime)
+            let d100 = videoData.currentTime * 100 / videoData.totalTime
+            controlPoint.style.left = d100 + '%'
+            progress.style.width = d100 + '%'
+        }, 1000)
+        // 音量
+        volumeTrack.addEventListener('click', function (e) {
+            let y = e.offsetY
+            let target = e.target
+            while (target !== volumeTrack) {
+                y += target.offsetTop
+                target = target.offsetParent
+            }
+            let volume = (volumeTrack.offsetHeight - y) / volumeTrack.offsetHeight
+            videoData.volume = volume
+            videoElement.volume = volume
+            let d100 = volume * 100 + '%'
+            volumeElement.style.height = d100
+        })
+        // 播放
+        playWrapper.addEventListener('click', reducePlayEvent)
+        function reducePlayEvent(e) {
+            if (videoData.paused) {
+                videoElement.play()
+            } else {
+                videoElement.pause()
+            }
+        }
+        videoElement.addEventListener('play', handlePlayEvent)
+        videoElement.addEventListener('pause', handlePlayEvent)
+        function handlePlayEvent(e) {
+            videoData.paused = videoElement.paused
+            playImages.forEach(function (item) {
+                if (item.dataset.state === (videoData.paused + '')) {
+                    item.className = 'show'
+                } else {
+                    item.className = 'hidden'
+                }
+            })
+        }
+        // 字幕
+        textTrack.addEventListener('click', function (e) {
+            videoData.track = !videoData.track
+            if (videoData.track) {
+                videoElement.textTracks[0].mode = 'showing'
+                textTrack.className = textTrack.className + ' active'
+            } else {
+                videoElement.textTracks[0].mode = 'disabled'
+                textTrack.className = textTrack.className ? textTrack.className.replace('active', '').trim() : 'active'
             }
         })
+        // 全屏
+        fullscreen.addEventListener('click', reduceFullScreenEvent)
+        function reduceFullScreenEvent(e) {
+            if (videoData.fullscreen) {
+                document.webkitExitFullscreen()
+            } else {
+                videoWrapper.webkitRequestFullScreen()
+            }
+        }
+        document.addEventListener('webkitfullscreenchange', handleFullScreenChange)
+        function handleFullScreenChange(e) {
+            videoData.fullscreen = document.webkitIsFullScreen
+            fullscreenImages.forEach(function (item) {
+                if (item.dataset.state === (videoData.fullscreen + '')) {
+                    item.className = 'show'
+                } else {
+                    item.className = 'hidden'
+                }
+            })
+            if (videoData.fullscreen === true) {
+                // videoWrapper.className = videoWrapper.className.trim() + ' isfullscreen'
+                addClassName(videoWrapper, 'isfullscreen')
+            } else {
+                // videoWrapper.className = videoWrapper.className.replace('isfullscreen', '').trim()
+                removeClassName(videoWrapper, 'isfullscreen')
+            }
+        }
+        // 方法
+        function addClassName(el, name) {
+            if (el.className) {
+                el.className = el.className + ' ' + name
+            } else {
+                el.className = name
+            }
+        }
+        function removeClassName(el, name) {
+            el.className = el.className.replace(name, '').split(' ').map(item => item.trim()).join(' ')
+        }
+        function toMinutes(time) {
+            time = parseInt(time)
+            return (Math.floor(time / 100) + '').padStart(2, 0) + ':' + (time % 100 + '').padStart(2, 0)
+        }
     </script>
 </body>
 

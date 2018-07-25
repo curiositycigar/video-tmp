@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
   <style>
-    video {
+    .video {
       width: 400px;
       height: 300px;
     }
@@ -16,8 +16,16 @@
 
 <body>
   <div>
-    <video id="video" width="300" height="200" src="./video.mp4" poster="./cover.jpg" controls>
-      <track kind="subtitles" src="./track.vtt" srclang="en">
+    <video src="./video.mp4" controls>
+    </video>
+    <video width="300" height="200" src="./video.mp4" controls>
+    </video>
+    <video class="video" width="300" height="200" src="./video.mp4">
+    </video>
+    <video class="video" width="300" height="200" src="./video.mp4" poster="./cover.jpg" controls>
+    </video>
+    <video class="video" width="300" height="200" poster="./cover.jpg" controls>
+      <source src="./video.mp4" type="video/mp4">
     </video>
   </div>
   <script>
