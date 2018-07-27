@@ -16,8 +16,8 @@
         }
 
         #play {
-            width: 640px;
-            height: 360px;
+            width: 480px;
+            height: 270px;
         }
 
         .video-wrapper {
@@ -242,7 +242,7 @@
         // 视频数据
         let videoData = {
             paused: true,
-            totalTime: 100,
+            totalTime: 0,
             currentTime: 0,
             cacheTime: 0,
             volumeShow: false,
@@ -333,7 +333,7 @@
         videoElement.addEventListener('pause', handlePlayEvent)
         function handlePlayEvent(e) {
             videoData.paused = videoElement.paused
-            playImages.forEach(function (item) {
+            playImages.forEach(function (item) { 
                 if (item.dataset.state === (videoData.paused + '')) {
                     item.className = 'show'
                 } else {
@@ -392,7 +392,7 @@
         }
         function toMinutes(time) {
             time = parseInt(time)
-            return (Math.floor(time / 100) + '').padStart(2, 0) + ':' + (time % 100 + '').padStart(2, 0)
+            return (Math.floor(time / 60) + '').padStart(2, 0) + ':' + (time % 60 + '').padStart(2, 0)
         }
     </script>
 </body>

@@ -7,17 +7,12 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
   <style>
-    video {
-      width: 0;
-      height: 0;
-      visibility: hidden;
-    }
   </style>
 </head>
 
 <body>
   <div>
-    <video id="video" src="./video/video.mp4" muted poster="./cover.jpg">
+    <video width="400" height="300" id="video" src="./video.mp4" poster="./cover.jpg" controls>
       <track kind="subtitles" src="./track.vtt" srclang="en">
     </video>
     <canvas id="canvas" width="480" height="270"></canvas>
@@ -107,8 +102,8 @@
       ctx1.putImageData(newFrame, 0, 0);
     }, 30)
     canvas1.addEventListener('mousemove', function (e) {
-      layerX = e.layerX
-      layerY = e.layerY
+      layerX = e.offsetX
+      layerY = e.offsetY
     })
   </script>
 </body>

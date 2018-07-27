@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    canvas {
+      border: solid 1px #000;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    // 事件
+    class Event {
+      constructor() {
+        this.eventHandlers = {}
+      }
+      on(name, handler, target) {
+        let eventHandlers = this.eventHandlers
+        if (eventHandlers[name]) {
+          eventHandlers[name].push(handler)
+        } else {
+          eventHandlers[name] = [handler]
+        }
+      }
+      off(name, handler) {
+        let eventHandlers = this.eventHandlers
+        if (eventHandlers[name]) {
+          let index = eventHandlers[name].indexOf(handler)
+          if (index !== -1) {
+            eventHandlers[name].splice(index, 1)
+            return true
+          }
+        }
+        return false
+      }
+      emit(name, data) {
+        let eventHandlers = this.eventHandlers
+        if (eventHandlers[name]) {
+          eventHandlers[name].forEach(function (cb) {
+            cb(data)
+          })
+        }
+      }
+    }
+    let event = new Event()
+
+    class Sence {
+      constructor(id, options = {
+        width: 300,
+        height: 300
+      }) {
+        this.canvas = document.querySelector('#' + id)
+        this.width = options.width
+        this.height = options.height
+        this.canvas.width = options.width
+        this.canvas.height = options.height
+        this.ctx = this.canvas.getContext('2d')
+        // 鼠标状态
+        this.mouseState = {
+          x: -1,
+          y: -1,
+          down: false
+        }
+        // 存储精灵
+        let sprites = []
+        this.sprites = sprites
+        // 注册事件
+        this.registerNativeEvent('click')
+        this.registerNativeEvent('contextmenu', {
+          button: 2
+        })
+        this.registerNativeEvent('mousedown')
+        this.registerNativeEvent('mousemove')
+        this.registerNativeEvent('mouseup', {
+          target: document.body
+        })
+        this.registerNativeEvent('mouseout')
+      }
+      registerNativeEvent(eventName, config = {}) {
+        let sprites = this.sprites
+        let target = config.target || this.canvas
+        let button = config.button || 0
+        target.addEventListener(eventName, function (e) {
+          //  相对画布的位置
+          if (e.button === button) {
+            let x = e.offsetX
+            let y = e.offsetY
+            let target = null
+            for (let i in sprites) {
+              if (sprites[i].choose(x, y)) {
+                target = sprites[i]
+                break;
+              }
+            }
+            event.emit(eventName, {
+              type: eventName,
+              target,
+              x,
+              y,
+              native: e
+            })
+          }
+        })
+      }
+      resetState() {
+        this.sprites.forEach(element => {
+          element.clearState()
+        })
+      }
+      append(sprite) {
+        this.sprites.push(sprite)
+        sprite.draw(this.ctx)
+      }
+      remove(id) {
+        this.sprites.splice(id, 1)
+      }
+      clear() {
+        this.ctx.clearRect(0, 0, this.width, this.height)
+      }
+      reset() {
+        this.clear()
+        this.sprites.forEach(element => {
+          element.draw(this.ctx)
+        })
+      }
+      paint(canvas, x = 0, y = 0) {
+        this.ctx.drawImage(canvas, x, y, this.width, this.height)
+      }
+      paintList(canvases) {
+        canvases.forEach(canvas => {
+          this.paint(canvas)
+        })
+      }
+      outCanvas() {
+        let canvas = document.createElement('canvas')
+        canvas.width = this.width
+        canvas.height = this.height
+        return canvas
+      }
+      froze() {
+        let front = this.outCanvas()
+        let end = this.outCanvas()
+        let frontCtx = front.getContext('2d')
+        let endCtx = end.getContext('2d')
+        this.sprites.forEach(element => {
+          if (element.state.active) {
+            element.draw(frontCtx)
+          } else {
+            element.draw(endCtx)
+          }
+        })
+        return {
+          front,
+          end
+        }
+      }
+    }
+    class Element {
+      constructor(options = {
+        fillStyle: 'rgba(0,0,0,0)',
+        strokeWidth: 1,
+        strokeStyle: 'rgba(0,0,0,255)',
+        handleEvent: false
+      }) {
+        this.state = {
+          active: false,
+          hover: false
+        }
+        this.options = options
+      }
+      clearState() {
+        this.state = {
+          active: false,
+          hover: false
+        }
+      }
+    }
+    class Circle extends Element {
+      constructor(x, y, r, options) {
+        super(options)
+        this.x = x
+        this.y = y
+        this.r = r
+      }
+      move(x, y) {
+        this.x += x
+        this.y += y
+      }
+      moveTo(x, y) {
+        this.x = x
+        this.y = y
+      }
+      choose(x, y) {
+        return ((x - this.x) ** 2 + (y - this.y) ** 2) < (this.r ** 2)
+      }
+      draw(ctx) {
+        let {
+          fillStyle,
+          strokeStyle,
+          strokeWidth
+        } = this.options
+        ctx.beginPath()
+        ctx.fillStyle = fillStyle
+        ctx.strokeStyle = strokeStyle
+        ctx.strokeWidth = strokeWidth
+        ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI)
+        ctx.stroke()
+        ctx.fill()
+      }
+    }
+
+    let sence = new Sence('canvas')
+    for (let i = 0; i < 10; i++) {
+      sence.append(new Circle(Math.floor(Math.random() * 220) + 40, Math.floor(Math.random() * 220) + 40, 20))
+    }
+    event.on('click', function (e) {
+      if (e.target) {
+        let active = !e.target.state.active
+        e.target.state.active = active
+        if (active) {
+          e.target.options.strokeStyle = 'rgba(255,0,0,255)'
+        } else {
+          e.target.options.strokeStyle = 'rgba(0,0,0,255)'
+        }
+        sence.reset()
+      }
+    })
+    // event.on('mousedown', function (e) {
+    //   console.log(e)
+    // })
+    // event.on('mousemove', function (e) {
+    //   console.log(e)
+    // })
+    // event.on('mouseup', function (e) {
+    //   console.log(e)
+    // })
+    // event.on('mouseout', function (e) {
+    //   console.log(e)
+    // })
+  </script>
+</body>
+
+</html>
