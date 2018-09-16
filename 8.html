@@ -15,6 +15,24 @@
 
 <body>
   <canvas id="canvas"></canvas>
+  <div>
+    模式：
+    <select name="state" id="state">
+      <option value="drawing" selected>绘制</option>
+      <option value="moving">移动</option>
+    </select>
+    图形：
+    <select name="shape" id="shape">
+      <option value="Line" selected>线</option>
+      <option value="CloseLine">闭合线</option>
+      <option value="Circle">圆</option>
+      <option value="Rect">矩形</option>
+    </select>
+    线条宽度(1-20)：
+    <input type="number" name="lineWidth" id="lineWidth" min="1" max="20" value="10"> 边框色：
+    <input type="color" name="strokeStyle" id="strokeStyle" value="#000000"> 填充色：
+    <input type="color" name="fillStyle" id="fillStyle" value="#ffff00">
+  </div>
   <script>
     class Scene {
       constructor(id, options = {
@@ -32,11 +50,15 @@
         this.outCanvas.width = this.width
         this.outCanvas.height = this.height
         this.outCtx = this.outCanvas.getContext('2d')
+        this.outCanvasFront = document.createElement('canvas')
+        this.outCanvasFront.width = this.width
+        this.outCanvasFront.height = this.height
+        this.outCtxFront = this.outCanvasFront.getContext('2d')
         // 画布触笔状态
         this.styles = {
           strokeStyle: '#000',
           fillStyle: '#ff0',
-          lineWidth: 1
+          lineWidth: 10
         }
         // 画布状态
         this.stateList = {
@@ -44,6 +66,7 @@
           moving: 'moving'
         }
         this.state = this.stateList.drawing
+        this.keyCode = null
         // 鼠标状态
         this.mouseState = {
           x: -1,
@@ -112,13 +135,24 @@
             }
             this.mouseState.target = target
             // 离屏canvas保存不移动目标
+            let sprites = this.sprites
+            // ---背景
             let ctx = this.outCtx
             ctx.clearRect(0, 0, this.width, this.height)
-            this.sprites.forEach(item => {
-              if (item !== target) {
-                item.draw(ctx)
+            let i = 0
+            for (; i < sprites.length; i++) {
+              if (sprites[i] !== target) {
+                sprites[i].draw(ctx)
+              } else {
+                break
               }
-            })
+            }
+            // --前景
+            let ctxFront = this.outCtxFront
+            ctxFront.clearRect(0, 0, this.width, this.height)
+            for (i++; i < sprites.length; i++) {
+              sprites[i].draw(ctxFront)
+            }
             if (target) {
               // 开始动画
               this.anmite()
@@ -158,6 +192,7 @@
           this.clear()
           this.paint(this.outCanvas)
           this.mouseState.target.draw(this.ctx)
+          this.paint(this.outCanvasFront)
           if (this.mouseState.down) {
             this.anmite()
           } else {
@@ -267,7 +302,6 @@
         let hH = this.h / 2
         let middleX = this.x + hW
         let middleY = this.y + hH
-        console.log(Math.abs(x - middleX))
         return (Math.abs(x - middleX) < Math.abs(hW)) && (Math.abs(y - middleY) < Math.abs(hH))
       }
       getOffset(x, y) {
@@ -291,11 +325,109 @@
         ctx.fill()
       }
       validate() {
-        return this.w >= 3 && this.h >= 3
+        return (this.w >= 3 || this.w <= -3)&& (this.h >= 3 || this.h <= -3)
+      }
+    }
+    class Line extends Element {
+      constructor(x, y, points = [], closePath, options) {
+        super(options)
+        this.path = [{ x, y }, ...points]
+        this.closePath = false
+      }
+      resize(x, y) {
+        let point = this.path[this.path.length - 1]
+        if ((Math.abs(point.x - x) > 1) || (Math.abs(point.y - y) > 1)) {
+          this.path.push({ x, y })
+        }
+      }
+      moveTo(x, y) {
+        let path = this.path
+        let point = path[0]
+        let offsetX = x - point.x;
+        let offsetY = y - point.y;
+        for (let i = 0; i < path.length; i++) {
+          path[i].x += offsetX
+          path[i].y += offsetY
+        }
+      }
+      choose(x, y) {
+        let round = this.lineWidth > 7 ? this.lineWidth ** 2 : 49
+        let path = this.path
+        for (let i = 0; i < path.length; i++) {
+          if (((path[i].x - x) ** 2 + (path[i].y - y) ** 2) < round) {
+            return true
+          }
+        }
+        return false
+      }
+      getOffset(x, y) {
+        return {
+          x: x - this.path[0].x,
+          y: y - this.path[0].y
+        }
+      }
+      draw(ctx) {
+        let {
+          fillStyle,
+          strokeStyle,
+          lineWidth
+        } = this.options
+        ctx.fillStyle = fillStyle
+        ctx.strokeStyle = strokeStyle
+        ctx.lineWidth = lineWidth
+        ctx.lineCap = 'round'
+        let path = this.path
+        ctx.beginPath()
+        for (let i = 0; i < path.length; i++) {
+          ctx.lineTo(path[i].x, path[i].y)
+        }
+        if (this.closePath) {
+          ctx.closePath()
+          ctx.fill()
+        }
+        ctx.stroke()
+      }
+      validate() {
+        return this.path.length > 1
+      }
+    }
+    class CloseLine extends Line {
+      constructor(x, y, points, closePath, options) {
+        super(x, y, points, closePath, options)
+        this.closePath = true
       }
     }
     let scene = new Scene('canvas')
-    scene.setCurrentSprite(Rect)
+    scene.setCurrentSprite(Line)
+    scene.reset()
+  </script>
+  <script>
+    let stateEl = document.querySelector('#state')
+    let lineWidthEl = document.querySelector('#lineWidth')
+    let strokeStyleEl = document.querySelector('#strokeStyle')
+    let fillStyleEl = document.querySelector('#fillStyle')
+    let shapeEl = document.querySelector('#shape')
+    stateEl.addEventListener('input', (e) => {
+      scene.state = e.target.value
+    })
+    shapeEl.addEventListener('input', (e) => {
+      switch (e.target.value) {
+        case 'Circle': scene.setCurrentSprite(Circle); break;
+        case 'Rect': scene.setCurrentSprite(Rect); break;
+        case 'Line': scene.setCurrentSprite(Line); break;
+        case 'CloseLine': scene.setCurrentSprite(CloseLine); break;
+        default: scene.setCurrentSprite(Rect); break;
+      }
+    })
+    lineWidthEl.addEventListener('input', (e) => {
+      scene.styles.lineWidth = parseInt(e.target.value)
+    })
+    strokeStyleEl.addEventListener('input', (e) => {
+      scene.styles.strokeStyle = e.target.value
+    })
+    fillStyleEl.addEventListener('input', (e) => {
+      scene.styles.fillStyle = e.target.value
+    })
   </script>
 </body>
 
