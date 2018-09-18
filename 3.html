@@ -16,18 +16,43 @@
 
 <body>
   <div>
-    <video id="video" src="video.mp4" poster="./cover.jpg" controls>
+    <video id="video" src="" poster="./cover.jpg" controls>
       <track kind="subtitles" src="./track.vtt" srclang="en" label="EN">
       <track kind="subtitles" src="./track-2.vtt" srclang="zh" label="ZH">
     </video>
   </div>
   <script>
     let video = document.querySelector('#video')
-    let textTracks = video.textTracks
+    // let textTracks = video.textTracks
     // 播放速率
     // video.playbackRate
-    // let mediaSource = new MediaSource()
-    // video.src = URL.createObjectURL(mediaSource)
+    let mediaSource = new MediaSource()
+    video.src = URL.createObjectURL(mediaSource)
+    mediaSource.addEventListener('sourceopen', handleSourceOpen)
+
+    function handleSourceOpen(_) {
+      let mediaSource = this
+      let sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E, mp4a.40.2"')
+      fetchAB('./frag_bunny.mp4', function (buf) {
+        sourceBuffer.addEventListener('updateend', function (_) {
+          // mediaSource.endOfStream();
+          // video.play();
+          //console.log(mediaSource.readyState); // ended
+        });
+        sourceBuffer.appendBuffer(buf);
+      })
+    }
+    
+    function fetchAB(url, cb) {
+      console.log(url);
+      var xhr = new XMLHttpRequest;
+      xhr.open('get', url);
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = function () {
+        cb(xhr.response);
+      };
+      xhr.send();
+    };
   </script>
 </body>
 
